@@ -1,15 +1,19 @@
 <?php
+require_once 'config.php';
+require_once 'DatabaseConnection.php';
+require_once 'UserRepository.php';
+require_once 'SendSurvey.php';
+
 $user_id = isset($_GET['id']) ? $_GET['id'] : 0;
 
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-    $user_id = $_GET['id'];
+    $db = new DatabaseConnection($GLOBALS['host'], $GLOBALS['username'], $GLOBALS['password'], $GLOBALS['dbname']);
+    $userRepository = new UserRepository($db);
 
-    require_once 'db.php';
-    $db = new DB();
-
-    if (!$db->userExists($user_id)) {
+    if (!$userRepository->userExists($user_id)) {
         echo "Пользователь не найден";
     } else {
+
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -48,18 +52,21 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         </html>
         <?php
     }
+	$db->closeConnection();
 } elseif ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_POST['id'];
     $mark = $_POST['mark'];
     $text = $_POST['text'];
 
-    require_once 'db.php';
-    $db = new DB();
+    $db = new DatabaseConnection($GLOBALS['host'], $GLOBALS['username'], $GLOBALS['password'], $GLOBALS['dbname']);
+    $SendSurvey = new SendSurvey($db);
 
-    if ($db->insertData($user_id, $mark, $text)) {
+    if ($SendSurvey->insertData($user_id, $mark, $text)) {
         echo '<script>alert("Данные успешно сохранены");</script>';
     } else {
         echo "Произошла ошибка";
     }
+
+    $db->closeConnection();
 }
 ?>
